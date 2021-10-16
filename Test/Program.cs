@@ -16,7 +16,7 @@ namespace Test
             //                                                     ----------------
             byte[] dataHasPattern = new byte[] { 0x01, 0x11, 0x00, 0x01, 0x12, 0x12, 0x01, 0xF1, 0x30, 0x31, 0x00, 0x01, 0x10, 0x11, 0x55 };
             byte[] data100MB = new byte[100 * 1024 * 1024];
-            string pattern = "\x01\x11";
+            string pattern = "\x01[\x10\x12-\xF0\xFF]{2}";
             Stopwatch watch = new Stopwatch();
 
             //검사할 데이터 준비
@@ -29,15 +29,49 @@ namespace Test
             Console.WriteLine("준비: 100MB 메모리에 {0}개 패턴 쓰기 완료.", writeCount);
 
             //시작
-            watch.Start();
             ByteRegex binRegex = new ByteRegex(pattern);
-            var matches = binRegex.Matches(data100MB);
+
+            watch.Reset();
+            watch.Start();
+            binRegex.MatchesT(data100MB);
             watch.Stop();
-            Console.WriteLine($"종료: {matches.Count}개 패턴 매치.");
+            Console.WriteLine($"(소요시간T: {watch.Elapsed})");
+
+            watch.Reset();
+            watch.Start();
+            binRegex.MatchesT(data100MB);
+            watch.Stop();
+            Console.WriteLine($"(소요시간T: {watch.Elapsed})");
+
+            watch.Reset();
+            watch.Start();
+            binRegex.MatchesT(data100MB);
+            watch.Stop();
+            Console.WriteLine($"(소요시간T: {watch.Elapsed})");
+
+            watch.Reset();
+            watch.Start();
+            binRegex.Matches(data100MB);
+            watch.Stop();
             Console.WriteLine($"(소요시간: {watch.Elapsed})");
+
+            watch.Reset();
+            watch.Start();
+            binRegex.Matches(data100MB);
+            watch.Stop();
+            Console.WriteLine($"(소요시간: {watch.Elapsed})");
+
+            watch.Reset();
+            watch.Start();
+            binRegex.Matches(data100MB);
+            watch.Stop();
+            Console.WriteLine($"(소요시간: {watch.Elapsed})");
+
+            //Console.WriteLine($"종료: {matches.Count}개 패턴 매치.");
             // [1] (소요시간: 00:00:00.0397982) 비교 안하고 for-if 순회만 하면
             // [2] (소요시간: 00:00:01.2921870) ByteRegex 사용한 시간.........동일 조건 Re2는 
             // [3] (소요시간: 00:00:00.0051644) [2]와 동일 조건에서 Re2 시간... 258배 빠름
+            // [4] (소요시간: 00:00:00.5758892) [2]에서 List<T>.Count 및 foreach->for 최적화 만으로 2배 이상 빨라짐.
             Console.ReadLine();
         }
     }

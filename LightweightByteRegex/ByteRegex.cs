@@ -23,7 +23,7 @@ namespace LightweightBinRegex
         public CommandCode code;
         public byte value;
         public byte end;
-        public List<Command> Nodes = new List<Command>();
+        public List<Command> Nodes = null;
 
 
         public override string ToString()
@@ -65,6 +65,7 @@ namespace LightweightBinRegex
     {
         bool _isCompiled = false;
         private List<Command> commands = new List<Command>();
+        private int commandsCount = 0;
         private ByteMatches matches = new ByteMatches();
 
 
@@ -87,6 +88,7 @@ namespace LightweightBinRegex
         {
             char[] p = pattern.ToCharArray();
             commands.Clear();
+            commandsCount = 0;
 
             for (int i = 0; i < p.Length; i++)
             {
@@ -96,6 +98,10 @@ namespace LightweightBinRegex
 
                     Command orCmd = new Command();
                     orCmd.code = CommandCode.OR;
+                    if(orCmd.Nodes == null)
+                    {
+                        orCmd.Nodes = new List<Command>();
+                    }
 
                     while (p[i] != ']')
                     {
@@ -153,6 +159,7 @@ namespace LightweightBinRegex
             }
 
             _isCompiled = true;
+            commandsCount = commands.Count;
         }
 
         public void Debug()
@@ -168,7 +175,7 @@ namespace LightweightBinRegex
         }
 
 
-        public ByteMatches Matches(byte[] data)
+        public ByteMatches MatchesT(byte[] data)
         {
 
             if (!_isCompiled)
@@ -178,7 +185,7 @@ namespace LightweightBinRegex
 
             matches.Clear();
 
-            if (commands.Count > data.Length)
+            if (commandsCount > data.Length)
                 return matches;
 
             for (int dataIdx = 0; dataIdx < data.Length; dataIdx++)
@@ -186,11 +193,11 @@ namespace LightweightBinRegex
                 // 0 1 2
                 // count = 3
                 int remain = data.Length - dataIdx;
-                if (remain < commands.Count)
+                if (remain < commandsCount)
                     break;
 
                 int hitSum = 0;
-                for (int cmdIdx = 0; cmdIdx < commands.Count; cmdIdx++)
+                for (int cmdIdx = 0; cmdIdx < commandsCount; cmdIdx++)
                 {
                     bool found = findNode(data[dataIdx + cmdIdx], commands[cmdIdx]);
                     if (found)
@@ -203,7 +210,51 @@ namespace LightweightBinRegex
                     }
                 }
 
-                if (hitSum == commands.Count)
+                if (hitSum == commandsCount)
+                {
+                    matches.Add(new ByteMatch(dataIdx));
+                }
+            }
+
+            return matches;
+        }
+
+        public ByteMatches Matches(byte[] data)
+        {
+
+            if (!_isCompiled)
+            {
+                throw new Exception("패턴이 없습니다.");
+            }
+
+            matches.Clear();
+
+            if (commandsCount > data.Length)
+                return matches;
+
+            for (int dataIdx = 0; dataIdx < data.Length; dataIdx++)
+            {
+                // 0 1 2
+                // count = 3
+                int remain = data.Length - dataIdx;
+                if (remain < commandsCount)
+                    break;
+
+                int hitSum = 0;
+                for (int cmdIdx = 0; cmdIdx < commandsCount; cmdIdx++)
+                {
+                    bool found = findNode(data[dataIdx + cmdIdx], commands[cmdIdx]);
+                    if (found)
+                    {
+                        hitSum++;
+                    }
+                    else
+                    {
+                        break;//하나라도 찾지 못하면 중단한다.
+                    }
+                }
+
+                if (hitSum == commandsCount)
                 {
                     matches.Add(new ByteMatch(dataIdx));
                 }
@@ -231,11 +282,21 @@ namespace LightweightBinRegex
                     break;
 
                 case CommandCode.OR:
-                    foreach (var item in command.Nodes)
+
+
+                    // <최적화 메모> 
+                    //  - foreach보다 for가 미세하게 빠르다.
+                    //  - List<T> 클래스의 Count를 가져오는데 엄청난 리소스가 낭비된다.
+                    //  - List<T>가 null인지 아닌지 검사하는 것만으로도 1.24sec 에서 0.54sec로 빨라졌다..
+                    if (command.Nodes != null)
                     {
-                        if (findNode(value, item))
-                            return true;
+                        for (int i = 0; i < command.Nodes.Count; i++)
+                        {
+                            if (findNode(value, command.Nodes[i]))
+                                return true;
+                        }
                     }
+
                     return false;
                 default:
                     break;
