@@ -31,47 +31,22 @@ namespace Test
             //시작
             ByteRegex binRegex = new ByteRegex(pattern);
 
-            watch.Reset();
-            watch.Start();
-            binRegex.MatchesT(data100MB);
-            watch.Stop();
-            Console.WriteLine($"(소요시간T: {watch.Elapsed})");
+            for (int i = 0; i < 50; i++)
+            {
+                watch.Reset();
+                watch.Start();
+                binRegex.MatchesParallel(data100MB);
+                watch.Stop();
+                Console.WriteLine($"(소요시간: {watch.Elapsed})");
+            }
 
-            watch.Reset();
-            watch.Start();
-            binRegex.MatchesT(data100MB);
-            watch.Stop();
-            Console.WriteLine($"(소요시간T: {watch.Elapsed})");
-
-            watch.Reset();
-            watch.Start();
-            binRegex.MatchesT(data100MB);
-            watch.Stop();
-            Console.WriteLine($"(소요시간T: {watch.Elapsed})");
-
-            watch.Reset();
-            watch.Start();
-            binRegex.Matches(data100MB);
-            watch.Stop();
-            Console.WriteLine($"(소요시간: {watch.Elapsed})");
-
-            watch.Reset();
-            watch.Start();
-            binRegex.Matches(data100MB);
-            watch.Stop();
-            Console.WriteLine($"(소요시간: {watch.Elapsed})");
-
-            watch.Reset();
-            watch.Start();
-            binRegex.Matches(data100MB);
-            watch.Stop();
-            Console.WriteLine($"(소요시간: {watch.Elapsed})");
 
             //Console.WriteLine($"종료: {matches.Count}개 패턴 매치.");
             // [1] (소요시간: 00:00:00.0397982) 비교 안하고 for-if 순회만 하면
-            // [2] (소요시간: 00:00:01.2921870) ByteRegex 사용한 시간.........동일 조건 Re2는 
+            // [2] (소요시간: 00:00:01.2921870) ByteRegex 사용한 시간
             // [3] (소요시간: 00:00:00.0051644) [2]와 동일 조건에서 Re2 시간... 258배 빠름
             // [4] (소요시간: 00:00:00.5758892) [2]에서 List<T>.Count 및 foreach->for 최적화 만으로 2배 이상 빨라짐.
+            // [5] (소요시간: 00:00:00.3912497) [4]에서 Parallel.For를 이용한 병렬 처리로 약 1.4배 더 빨라짐.
             Console.ReadLine();
         }
     }

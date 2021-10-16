@@ -175,53 +175,8 @@ namespace LightweightBinRegex
         }
 
 
-        public ByteMatches MatchesT(byte[] data)
-        {
-
-            if (!_isCompiled)
-            {
-                throw new Exception("패턴이 없습니다.");
-            }
-
-            matches.Clear();
-
-            if (commandsCount > data.Length)
-                return matches;
-
-            for (int dataIdx = 0; dataIdx < data.Length; dataIdx++)
-            {
-                // 0 1 2
-                // count = 3
-                int remain = data.Length - dataIdx;
-                if (remain < commandsCount)
-                    break;
-
-                int hitSum = 0;
-                for (int cmdIdx = 0; cmdIdx < commandsCount; cmdIdx++)
-                {
-                    bool found = findNode(data[dataIdx + cmdIdx], commands[cmdIdx]);
-                    if (found)
-                    {
-                        hitSum++;
-                    }
-                    else
-                    {
-                        break;//하나라도 찾지 못하면 중단한다.
-                    }
-                }
-
-                if (hitSum == commandsCount)
-                {
-                    matches.Add(new ByteMatch(dataIdx));
-                }
-            }
-
-            return matches;
-        }
-
         public ByteMatches Matches(byte[] data)
         {
-
             if (!_isCompiled)
             {
                 throw new Exception("패턴이 없습니다.");
@@ -234,8 +189,6 @@ namespace LightweightBinRegex
 
             for (int dataIdx = 0; dataIdx < data.Length; dataIdx++)
             {
-                // 0 1 2
-                // count = 3
                 int remain = data.Length - dataIdx;
                 if (remain < commandsCount)
                     break;
@@ -243,7 +196,7 @@ namespace LightweightBinRegex
                 int hitSum = 0;
                 for (int cmdIdx = 0; cmdIdx < commandsCount; cmdIdx++)
                 {
-                    bool found = findNode(data[dataIdx + cmdIdx], commands[cmdIdx]);
+                    bool found = FindNode(data[dataIdx + cmdIdx], commands[cmdIdx]);
                     if (found)
                     {
                         hitSum++;
@@ -263,7 +216,53 @@ namespace LightweightBinRegex
             return matches;
         }
 
-        private bool findNode(byte value, Command command)
+        public ByteMatches MatchesParallel(byte[] data)
+        {
+            if (!_isCompiled)
+            {
+                throw new Exception("패턴이 없습니다.");
+            }
+            object listLock = new object();
+            matches.Clear();
+
+            if (commandsCount > data.Length)
+                return matches;
+
+            int len = data.Length;
+            // <최적화> MaxDegreeOfParallelism = Environment.ProcessorCount / 2 옵션을 설정하면
+            // 속도가 가장 빠르고 CPU 사용률도 약 60%정도 유지되었다. 이 옵션을 사용하지 않으면 CPU 사용율은 100%
+            Parallel.For( 0, len, new ParallelOptions() { MaxDegreeOfParallelism = Environment.ProcessorCount / 2}, dataIdx => {
+                int remain = data.Length - dataIdx;
+                if (remain >= commandsCount) //Parallel.For는 break;를 쓸 수 없어서 if문으로 감쌌다.
+                {
+                    int hitSum = 0;
+                    for (int cmdIdx = 0; cmdIdx < commandsCount; cmdIdx++)
+                    {
+                        bool found = FindNode(data[dataIdx + cmdIdx], commands[cmdIdx]);
+                        if (found)
+                        {
+                            hitSum++;
+                        }
+                        else
+                        {
+                            break;//하나라도 찾지 못하면 중단한다.
+                        }
+                    }
+
+                    if (hitSum == commandsCount)
+                    {
+                        lock (listLock)
+                        {
+                            matches.Add(new ByteMatch(dataIdx));
+                        }
+                    }
+                }
+            });
+
+            return matches;
+        }
+
+        private bool FindNode(byte value, Command command)
         {
             switch (command.code)
             {
@@ -282,8 +281,6 @@ namespace LightweightBinRegex
                     break;
 
                 case CommandCode.OR:
-
-
                     // <최적화 메모> 
                     //  - foreach보다 for가 미세하게 빠르다.
                     //  - List<T> 클래스의 Count를 가져오는데 엄청난 리소스가 낭비된다.
@@ -292,12 +289,13 @@ namespace LightweightBinRegex
                     {
                         for (int i = 0; i < command.Nodes.Count; i++)
                         {
-                            if (findNode(value, command.Nodes[i]))
+                            if (FindNode(value, command.Nodes[i]))
                                 return true;
                         }
                     }
-
+                    
                     return false;
+
                 default:
                     break;
             }
