@@ -8,7 +8,8 @@ namespace LightweightBinRegex
 {
     internal enum CommandCode
     {
-        Byte,
+        Single,
+        OR,
         Range
     }
 
@@ -20,12 +21,14 @@ namespace LightweightBinRegex
     internal class Command
     {
         public CommandCode code;
-        public byte start;
+        public byte value;
         public byte end;
+        public List<Command> Nodes = new List<Command>();
+
 
         public override string ToString()
         {
-            return String.Format("Code:{0}, start:0x{1:X2}, end:0x{2:X2}", code, (int)start, (int)end);
+            return String.Format("Code:{0}, value:0x{1:X2}, end:0x{2:X2}", code, (int)value, (int)end);
         }
     }
 
@@ -61,7 +64,7 @@ namespace LightweightBinRegex
     public class ByteRegex
     {
         bool _isCompiled = false;
-        private List<Command> commandes = new List<Command>();
+        private List<Command> commands = new List<Command>();
         private ByteMatches matches = new ByteMatches();
 
 
@@ -83,35 +86,41 @@ namespace LightweightBinRegex
         public void Compile(string pattern)
         {
             char[] p = pattern.ToCharArray();
-            commandes.Clear();
+            commands.Clear();
 
             for (int i = 0; i < p.Length; i++)
             {
-                if (p[i] == '[')
+                if (p[i] == '[')//OR
                 {
                     i++;
+
+                    Command orCmd = new Command();
+                    orCmd.code = CommandCode.OR;
+
                     while (p[i] != ']')
                     {
                         if (p[i - 1] == '-')
                         {
-                            commandes.RemoveAt(commandes.Count - 1);// '-' 지우기
-                            Command lastCmd = commandes[commandes.Count - 1];// '-' 왼쪽 커맨드 꺼내기
-                            commandes.RemoveAt(commandes.Count - 1);// '-' 왼쪽 커맨드 삭제
+                            orCmd.Nodes.RemoveAt(orCmd.Nodes.Count - 1);// '-' 지우기
+                            Command lastCmd = orCmd.Nodes[orCmd.Nodes.Count - 1];// '-' 왼쪽 커맨드 꺼내기
+                            orCmd.Nodes.RemoveAt(orCmd.Nodes.Count - 1);// '-' 왼쪽 커맨드 삭제
                             lastCmd.code = CommandCode.Range;
                             lastCmd.end = Convert.ToByte(p[i]);
-                            commandes.Add(lastCmd);
+                            orCmd.Nodes.Add(lastCmd);
                         }
                         else
                         {
                             Command cmd = new Command()
                             {
-                                code = CommandCode.Byte,
-                                start = Convert.ToByte(p[i])
+                                code = CommandCode.Single,
+                                value = Convert.ToByte(p[i])
                             };
-                            commandes.Add(cmd);
+                            orCmd.Nodes.Add(cmd);
                         }
                         i++;
                     }
+                    commands.Add(orCmd);
+                    
                 }
                 else if (p[i] == '{')//Count
                 {
@@ -127,18 +136,18 @@ namespace LightweightBinRegex
                     }
 
                     count = int.Parse(sCount.ToString());
-                    last = commandes[commandes.Count - 1];
+                    last = commands[commands.Count - 1];
                     for (int j = 0; j < count - 1; j++)//이미 1개는 들어가 있으니까 count-1회 반복한다.
                     {
-                        commandes.Add(last);
+                        commands.Add(last);
                     }
                 }
                 else
                 {
-                    commandes.Add(new Command()
+                    commands.Add(new Command()
                     {
-                        code = CommandCode.Byte,
-                        start = Convert.ToByte(p[i])
+                        code = CommandCode.Single,
+                        value = Convert.ToByte(p[i])
                     });
                 }
             }
@@ -146,6 +155,17 @@ namespace LightweightBinRegex
             _isCompiled = true;
         }
 
+        public void Debug()
+        {
+            foreach (var item in commands)
+            {
+                Console.WriteLine(item.ToString());
+                foreach (var nodeItem in item.Nodes)
+                {
+                    Console.WriteLine(nodeItem.ToString());
+                }
+            } 
+        }
 
 
         public ByteMatches Matches(byte[] data)
@@ -158,54 +178,69 @@ namespace LightweightBinRegex
 
             matches.Clear();
 
-            if (commandes.Count > data.Length)
+            if (commands.Count > data.Length)
                 return matches;
 
-            for (int i = 0; i < data.Length; i++)
+            for (int dataIdx = 0; dataIdx < data.Length; dataIdx++)
             {
                 // 0 1 2
                 // count = 3
-                int remain = data.Length - i;
-                if (remain < commandes.Count)
+                int remain = data.Length - dataIdx;
+                if (remain < commands.Count)
                     break;
 
                 int hitSum = 0;
-                for (int j = 0; j < commandes.Count; j++)
+                for (int cmdIdx = 0; cmdIdx < commands.Count; cmdIdx++)
                 {
-                    int hit = 0;
-                    switch (commandes[j].code)
+                    bool found = findNode(data[dataIdx + cmdIdx], commands[cmdIdx]);
+                    if (found)
                     {
-                        case CommandCode.Byte:
-                            if (data[i + j] == commandes[j].start)
-                            {
-                                hitSum++;
-                                hit++;
-                            }
-                            break;
-                        case CommandCode.Range:
-                            if (commandes[j].start <= data[i + j] && data[i + j] <= commandes[j].end)
-                            {
-                                hitSum++;
-                                hit++;
-                            }
-                            break;
-                        default:
-                            throw new Exception("잘못된 컴파일.");
+                        hitSum++;
                     }
-                    //2021-10-16 박영기
-                    //성능을 위하여 하나라도 hit되지 않으면 현재 바이트에 대한 패턴 검사를 중단한다.
-                    //이번 테스트에서는 6배 정도 속도가 향상되었다.
-                    if (hit != 1)
-                        break;
+                    else
+                    {
+                        break;//하나라도 찾지 못하면 중단한다.
+                    }
                 }
 
-                if (hitSum == commandes.Count)
+                if (hitSum == commands.Count)
                 {
-                    matches.Add(new ByteMatch(i));
+                    matches.Add(new ByteMatch(dataIdx));
                 }
             }
 
             return matches;
+        }
+
+        private bool findNode(byte value, Command command)
+        {
+            switch (command.code)
+            {
+                case CommandCode.Single:
+                    if (value == command.value)
+                    {
+                        return true;
+                    }
+                    break;
+
+                case CommandCode.Range:
+                    if (command.value <= value && value <= command.end)
+                    {
+                        return true;
+                    }
+                    break;
+
+                case CommandCode.OR:
+                    foreach (var item in command.Nodes)
+                    {
+                        if (findNode(value, item))
+                            return true;
+                    }
+                    return false;
+                default:
+                    break;
+            }
+            return false;
         }
     }
 }
