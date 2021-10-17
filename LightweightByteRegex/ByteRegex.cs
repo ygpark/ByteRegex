@@ -167,9 +167,12 @@ namespace LightweightBinRegex
             foreach (var item in commands)
             {
                 Console.WriteLine(item.ToString());
-                foreach (var nodeItem in item.Nodes)
+                if(item.Nodes != null)
                 {
-                    Console.WriteLine(nodeItem.ToString());
+                    foreach (var nodeItem in item.Nodes)
+                    {
+                        Console.WriteLine(nodeItem.ToString());
+                    }
                 }
             } 
         }
@@ -210,6 +213,9 @@ namespace LightweightBinRegex
                 if (hitSum == commandsCount)
                 {
                     matches.Add(new ByteMatch(dataIdx));
+                    //TODO: 패턴이 매칭되면 그 구간을 건너뛰는 옵션을 구현해 보는건 어떨까?
+                    //      CCTV용 패턴은 200짜리같은 긴 것도 있는데.. 한번 매칭된 구간은 건너뛰는게 맞는 것 같다.
+                    //      예) dataIdx += commandsCount;
                 }
             }
 

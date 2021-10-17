@@ -30,6 +30,7 @@ namespace Test
 
             //시작
             ByteRegex binRegex = new ByteRegex(pattern);
+            //binRegex.Debug();
 
             for (int i = 0; i < 50; i++)
             {
