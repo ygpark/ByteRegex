@@ -50,7 +50,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\LightweightByteRegex\ByteRegex0.csproj">
+    <ProjectReference Include="..\ByteRegex0\ByteRegex0.csproj">
       <Project>{ebe7436b-1bca-430d-8804-bd629960ac07}</Project>
       <Name>ByteRegex0</Name>
     </ProjectReference>

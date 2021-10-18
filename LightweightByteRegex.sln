@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31808.319
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ByteRegex0", "LightweightByteRegex\ByteRegex0.csproj", "{EBE7436B-1BCA-430D-8804-BD629960AC07}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ByteRegex0", "ByteRegex0\ByteRegex0.csproj", "{EBE7436B-1BCA-430D-8804-BD629960AC07}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{4DF0611C-B1C7-40C8-BC59-D1B4D5521003}"
 	ProjectSection(ProjectDependencies) = postProject

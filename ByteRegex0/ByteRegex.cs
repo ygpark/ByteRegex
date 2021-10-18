@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LightweightBinRegex
+namespace ByteRegex0
 {
     internal enum CommandCode
     {
