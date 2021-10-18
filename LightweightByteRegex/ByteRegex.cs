@@ -199,7 +199,7 @@ namespace LightweightBinRegex
                 int hitSum = 0;
                 for (int cmdIdx = 0; cmdIdx < commandsCount; cmdIdx++)
                 {
-                    bool found = FindNode(data[dataIdx + cmdIdx], commands[cmdIdx]);
+                    bool found = Compare(data[dataIdx + cmdIdx], commands[cmdIdx]);
                     if (found)
                     {
                         hitSum++;
@@ -244,8 +244,8 @@ namespace LightweightBinRegex
                     int hitSum = 0;
                     for (int cmdIdx = 0; cmdIdx < commandsCount; cmdIdx++)
                     {
-                        bool found = FindNode(data[dataIdx + cmdIdx], commands[cmdIdx]);
-                        if (found)
+                        bool isEqual = Compare(data[dataIdx + cmdIdx], commands[cmdIdx]);
+                        if (isEqual)
                         {
                             hitSum++;
                         }
@@ -268,7 +268,7 @@ namespace LightweightBinRegex
             return matches;
         }
 
-        private bool FindNode(byte value, Command command)
+        private bool Compare(byte value, Command command)
         {
             switch (command.code)
             {
@@ -295,7 +295,7 @@ namespace LightweightBinRegex
                     {
                         for (int i = 0; i < command.Nodes.Count; i++)
                         {
-                            if (FindNode(value, command.Nodes[i]))
+                            if (Compare(value, command.Nodes[i]))
                                 return true;
                         }
                     }

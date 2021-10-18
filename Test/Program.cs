@@ -32,14 +32,11 @@ namespace Test
             ByteRegex binRegex = new ByteRegex(pattern);
             //binRegex.Debug();
 
-            for (int i = 0; i < 50; i++)
-            {
-                watch.Reset();
-                watch.Start();
-                binRegex.MatchesParallel(data100MB);
-                watch.Stop();
-                Console.WriteLine($"(소요시간: {watch.Elapsed})");
-            }
+            watch.Reset();
+            watch.Start();
+            binRegex.MatchesParallel(data100MB);
+            watch.Stop();
+            Console.WriteLine($"(소요시간: {watch.Elapsed})");
 
 
             //Console.WriteLine($"종료: {matches.Count}개 패턴 매치.");
