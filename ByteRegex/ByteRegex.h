@@ -1,10 +1,11 @@
 #pragma once
 #include <vector>
 
-enum CommandCode {
-    Single,
+enum class CommandCode {
+    NONE,
+    SINGLE,
     OR,
-    Range
+    RANGE
 };
 
 struct Command {
@@ -19,14 +20,24 @@ class ByteRegex
 {
 private:
     bool _isCompiled = false;
-    std::vector<Command> commands;
-    int commandsCount = 0;
+    std::vector<Command> _commands;
     std::vector<int> matches;
+    int* matchesArray;
+    int matchesArraySize;
+    int matchesArrayCapa;
 
 public:
     ByteRegex();
-    ByteRegex(char* pattern);
+    ByteRegex(char* pattern, int size);
+    ~ByteRegex();
 
-    void Compile(char* pattern);
+    void Compile(char* pattern, int size);
+    int Matches(char* buffer, int len);
+    int* GetMatches();
+    int GetMatchesSize();
+
+    void Debug();
+
+private:
 };
 

@@ -2,8 +2,8 @@
 #include "pch.h"
 #include <iostream>
 #include <vector>
+#include "ByteRegex.h"
 
-#define MY_DECLSPEC __declspec(dllexport)
 
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,
@@ -21,24 +21,75 @@ BOOL APIENTRY DllMain( HMODULE hModule,
     return TRUE;
 }
 
-extern "C" MY_DECLSPEC int Matches(char* buffer, int bufferSize, int* indexArray, int indexArraySize)
+ByteRegex* byteRegex = NULL;
+
+extern "C" MY_DECLSPEC void byteregex_init()
 {
-    int cond;
-    for (size_t i = 0; i < bufferSize; i += 200)
+    if (byteRegex == NULL)
     {
-        /*if (i < bufferSize -3)
-            i = i + 3;*/
-
-        if (buffer[i] == 1)
-        {
-            indexArray[i % 100] = i;
-        }
-        else
-        {
-            indexArray[i % 100] = i;
-        }
+        byteRegex = new ByteRegex();
     }
-
-    return 1;
+    else 
+    {
+        byteregex_free();
+        byteregex_init();
+    }
 }
 
+extern "C" MY_DECLSPEC void byteregex_init_with_pattern(char *pattern, int size)
+{
+    if (byteRegex == NULL)
+    {
+        byteRegex = new ByteRegex(pattern, size);
+    }
+    else
+    {
+        byteregex_free();
+        byteregex_init();
+    }
+}
+
+extern "C" MY_DECLSPEC void byteregex_free()
+{
+    if (byteRegex != NULL)
+    {
+        delete byteRegex;
+        byteRegex = NULL;
+    }
+}
+
+extern "C" MY_DECLSPEC bool byteregex_compile(char* pattern, unsigned int size)
+{
+    if (byteRegex == NULL) 
+    {
+        return false;
+    }
+
+    byteRegex->Compile(pattern, size);
+    //byteRegex->Debug();
+    return true;
+}
+
+extern "C" MY_DECLSPEC int byteregex_matches(char* buffer, int length)
+{
+    return byteRegex->Matches(buffer, length);
+}
+
+extern "C" MY_DECLSPEC int byteregex_get_matches(int* indexArray, int& length)
+{
+    int *matches = byteRegex->GetMatches();
+    int matchesSize = byteRegex->GetMatchesSize();
+    if (length < matchesSize) {
+        length = matchesSize;
+        return -1;
+    }
+
+    memcpy(indexArray, matches, matchesSize);
+    length = matchesSize;
+    return 0;
+}
+
+extern "C" MY_DECLSPEC int byteregex_matches_get_matches_count()
+{
+    return byteRegex->GetMatchesSize();
+}
