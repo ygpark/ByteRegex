@@ -2,35 +2,34 @@
 #include <vector>
 
 enum class CommandCode {
-    NONE,
-    SINGLE,
-    OR,
-    RANGE
+    NONE = 1,
+    EQUAL = 2,
+    SINGLE = 3,
+    SINGLE_ANY = 4,
+    SINGLE_RANGE = 5,
 };
 
 struct Command {
     CommandCode code;
-    char value;
-    char end;
+    byte value;
+    byte end;
     std::vector<Command> Nodes;
 };
-
 
 class ByteRegex
 {
 private:
     bool _isCompiled = false;
     std::vector<Command> _commands;
-    std::vector<int> matches;
-    std::vector<int> _matchesArray;
+    std::vector<int> _matches;
 
 public:
     ByteRegex();
-    ByteRegex(char* pattern, int size);
+    ByteRegex(byte* pattern, int size);
     ~ByteRegex();
 
-    void Compile(char* pattern, int size);
-    int Matches(char* buffer, int len);
+    void Compile(byte* pattern, int size);
+    int Matches(byte* buffer, int size);
     int* GetMatches();
     int GetMatchesSize();
 

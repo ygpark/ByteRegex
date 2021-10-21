@@ -14,11 +14,17 @@ namespace Test
         static void Main(string[] args)
         {
             //                                                     ----------------
-            byte[] dataHasPattern = new byte[] { 0x01, 0x11, 0x00, 0x01, 0x12, 0x12, 0x01, 0xF1, 0x30, 0x31, 0x00, 0x01, 0x10, 0x11, 0x55 };
+            byte[] dataHasPattern = new byte[256];
+            for (int i = 0; i < 256; i++)
+            {
+                dataHasPattern[i] = (byte)i;
+            }
             byte[] data100MB = new byte[100 * 1024 * 1024];//버퍼를 100MB로 잡고 x86으로 빌드하면 Access Violation 오류 발생.
-            //byte[] data100MB = new byte[30];
+            //byte[] data100MB = new byte[256];
             //string pattern = "\x01[\x10\x12-\xF0\xFF]{2}";
-            string pattern = "\x01\x11";
+            //string pattern = "\x01\x11[\x00-\x55\x66-\xF0\x00-\xFF]\x01\x12";
+            string pattern = "\x01\x02\x03\x04\x05\x06\x07\x08[\x00-\xFF]\x0A";
+            //string pattern = "\xFF";
             Stopwatch watch = new Stopwatch();
 
             //검사할 데이터 준비
@@ -30,7 +36,7 @@ namespace Test
             }
             Console.WriteLine("준비: 100MB 메모리에 {0}개 패턴 쓰기 완료.", writeCount);
 
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 4; i++)
             {
                 ByteRegex.NET.ByteRegexWrapper byteRegex1 = new ByteRegex.NET.ByteRegexWrapper(pattern);
                 watch.Reset();

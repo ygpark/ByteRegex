@@ -14,13 +14,13 @@ namespace ByteRegex.NET
         private static extern IntPtr byteregex_init();
 
         [DllImport("ByteRegex.dll", CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr byteregex_init_by_pattern(char[] pattern, int size);
+        private static extern IntPtr byteregex_init_by_pattern(byte[] pattern, int size);
 
         [DllImport("ByteRegex.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern int byteregex_free(IntPtr handle);
 
         [DllImport("ByteRegex.dll", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void byteregex_compile(IntPtr handle, char[] pattern, int size);
+        private static extern void byteregex_compile(IntPtr handle, byte[] pattern, int size);
 
         [DllImport("ByteRegex.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern int byteregex_matches(IntPtr handle, byte[] buffer, int size);
@@ -44,7 +44,7 @@ namespace ByteRegex.NET
 
         public ByteRegexWrapper(string pattern)
         {
-            char[] buf = pattern.ToCharArray();
+            byte[] buf = Encoding.GetEncoding("Latin1").GetBytes(pattern);
             _handle = byteregex_init_by_pattern(buf, buf.Length);
         }
 
@@ -55,8 +55,8 @@ namespace ByteRegex.NET
 
         public void Compile(string pattern)
         {
-            char[] arr = pattern.ToCharArray();
-            byteregex_compile(_handle, arr, arr.Length);
+            byte[] buf = Encoding.GetEncoding("Latin1").GetBytes(pattern);
+            byteregex_compile(_handle, buf, buf.Length);
         }
 
 

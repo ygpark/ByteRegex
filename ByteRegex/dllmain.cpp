@@ -1,6 +1,6 @@
 ﻿// dllmain.cpp : DLL 애플리케이션의 진입점을 정의합니다.
 #include "pch.h"
-//#include <iostream>
+#include <iostream>
 #include <vector>
 #include "ByteRegex.h"
 
@@ -26,31 +26,39 @@ extern "C" MY_DECLSPEC void* byteregex_init()
     return new ByteRegex();
 }
 
-extern "C" MY_DECLSPEC void* byteregex_init_by_pattern(char* pattern, int size)
+extern "C" MY_DECLSPEC void* byteregex_init_by_pattern(byte *pattern, int size)
 {
-        return new ByteRegex(pattern, size);
+    //std::cout << "PATTERN : ";
+    //for (int i = 0; i < size; i++)
+    //{
+    //    //std::cout << (int)pattern[i] << "(" << pattern[i] << ")" << " ";
+    //    std::cout << (int)pattern[i]  << " ";
+    //}
+    //std::cout << std::endl;
+    return new ByteRegex(pattern, size);
 }
 
-extern "C" MY_DECLSPEC void byteregex_free(void* handle)
+extern "C" MY_DECLSPEC void byteregex_free(void *handle)
 {
     ByteRegex* regex = (ByteRegex*)handle;
     delete regex;
 }
 
-extern "C" MY_DECLSPEC void byteregex_compile(void* handle, char* pattern, int size)
+extern "C" MY_DECLSPEC void byteregex_compile(void *handle, byte *pattern, int size)
 {
     ByteRegex* regex = (ByteRegex*)handle;
     regex->Compile(pattern, size);
+    regex->Debug();
 }
 
-extern "C" MY_DECLSPEC void byteregex_matches(void* handle, char* buffer, int size)
+extern "C" MY_DECLSPEC void byteregex_matches(void *handle, byte *buffer, int size)
 {
     ByteRegex* regex = (ByteRegex*)handle;
     regex->Matches(buffer, size);
     //std::cout << "size: " << size << std::endl;
 }
 
-extern "C" MY_DECLSPEC int byteregex_get_matches(void* handle, int* indexArray, int& size)
+extern "C" MY_DECLSPEC int byteregex_get_matches(void *handle, int *indexArray, int &size)
 {
     ByteRegex* regex = (ByteRegex*)handle;
 
@@ -66,7 +74,7 @@ extern "C" MY_DECLSPEC int byteregex_get_matches(void* handle, int* indexArray, 
     return 0;
 }
 
-extern "C" MY_DECLSPEC int byteregex_get_matches_count(void* handle)
+extern "C" MY_DECLSPEC int byteregex_get_matches_count(void *handle)
 {
     ByteRegex* regex = (ByteRegex*)handle;
     return regex->GetMatchesSize();
