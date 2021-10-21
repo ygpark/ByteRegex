@@ -5,10 +5,11 @@
 #include <windows.h>
 
 #define MY_DECLSPEC __declspec(dllexport)
-extern "C" MY_DECLSPEC void byteregex_init();
-extern "C" MY_DECLSPEC void byteregex_init_with_pattern(char* pattern, int size);
-extern "C" MY_DECLSPEC void byteregex_free();
-extern "C" MY_DECLSPEC bool byteregex_compile(char* pattern, unsigned int size);
-extern "C" MY_DECLSPEC int byteregex_matches(char* buffer, int length);
-extern "C" MY_DECLSPEC int byteregex_get_matches(int* indexArray, int& length);
-extern "C" MY_DECLSPEC int byteregex_matches_get_matches_count();
+//extern "C" MY_DECLSPEC void byteregex_init();
+extern "C" MY_DECLSPEC void* byteregex_init();
+extern "C" MY_DECLSPEC void* byteregex_init_by_pattern(char* pattern, int size);
+extern "C" MY_DECLSPEC void byteregex_free(void* handle);
+extern "C" MY_DECLSPEC void byteregex_compile(void* handle, char* pattern, int size);
+extern "C" MY_DECLSPEC void byteregex_matches(void* handle, char* buffer, int size);
+extern "C" MY_DECLSPEC int byteregex_get_matches(void* handle, int* indexArray, int& size);
+extern "C" MY_DECLSPEC int byteregex_get_matches_count(void* handle);

@@ -22,9 +22,7 @@ private:
     bool _isCompiled = false;
     std::vector<Command> _commands;
     std::vector<int> matches;
-    int* matchesArray;
-    int matchesArraySize;
-    int matchesArrayCapa;
+    std::vector<int> _matchesArray;
 
 public:
     ByteRegex();

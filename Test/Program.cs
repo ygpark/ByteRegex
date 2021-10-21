@@ -15,7 +15,7 @@ namespace Test
         {
             //                                                     ----------------
             byte[] dataHasPattern = new byte[] { 0x01, 0x11, 0x00, 0x01, 0x12, 0x12, 0x01, 0xF1, 0x30, 0x31, 0x00, 0x01, 0x10, 0x11, 0x55 };
-            byte[] data100MB = new byte[10 * 1024 * 1024];//버퍼를 100MB로 잡고 x86으로 빌드하면 Access Violation 오류 발생.
+            byte[] data100MB = new byte[100 * 1024 * 1024];//버퍼를 100MB로 잡고 x86으로 빌드하면 Access Violation 오류 발생.
             //byte[] data100MB = new byte[30];
             //string pattern = "\x01[\x10\x12-\xF0\xFF]{2}";
             string pattern = "\x01\x11";

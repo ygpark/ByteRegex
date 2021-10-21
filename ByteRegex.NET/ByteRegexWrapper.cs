@@ -9,46 +9,67 @@ namespace ByteRegex.NET
 {
     public class ByteRegexWrapper
     {
+        #region PInvoke
         [DllImport("ByteRegex.dll", CallingConvention = CallingConvention.Cdecl)]
-        private static extern int byteregex_init();
+        private static extern IntPtr byteregex_init();
 
         [DllImport("ByteRegex.dll", CallingConvention = CallingConvention.Cdecl)]
-        private static extern int byteregex_init_with_pattern(byte[] pattern, int size);
+        private static extern IntPtr byteregex_init_by_pattern(char[] pattern, int size);
 
         [DllImport("ByteRegex.dll", CallingConvention = CallingConvention.Cdecl)]
-        private static extern int byteregex_free();
+        private static extern int byteregex_free(IntPtr handle);
 
         [DllImport("ByteRegex.dll", CallingConvention = CallingConvention.Cdecl)]
-        private static extern int byteregex_compile(char[] pattern, int size);
+        private static extern void byteregex_compile(IntPtr handle, char[] pattern, int size);
 
         [DllImport("ByteRegex.dll", CallingConvention = CallingConvention.Cdecl)]
-        private static extern int byteregex_matches(byte[] buffer, int length);
+        private static extern int byteregex_matches(IntPtr handle, byte[] buffer, int size);
+        
         [DllImport("ByteRegex.dll", CallingConvention = CallingConvention.Cdecl)]
-        private static extern int byteregex_get_matches(int[] indexArray, out int length);
+        private static extern int byteregex_get_matches(int[] indexArray, out int size);
+
+        [DllImport("ByteRegex.dll", CallingConvention = CallingConvention.Cdecl)]
+        private static extern int byteregex_get_matches_count(IntPtr handle);
+
+        #endregion
+
+        #region 멤버변수
+        IntPtr _handle;
+        #endregion
+
+        public ByteRegexWrapper()
+        {
+            _handle = byteregex_init();
+        }
 
         public ByteRegexWrapper(string pattern)
         {
-            byteregex_init();
-            char[] arr = pattern.ToCharArray();
-            byteregex_compile(arr, arr.Length);
+            char[] buf = pattern.ToCharArray();
+            _handle = byteregex_init_by_pattern(buf, buf.Length);
         }
 
         ~ByteRegexWrapper()
         {
-            byteregex_free();
+            byteregex_free(_handle);
         }
 
         public void Compile(string pattern)
         {
             char[] arr = pattern.ToCharArray();
-            byteregex_compile(arr, arr.Length);
+            byteregex_compile(_handle, arr, arr.Length);
         }
 
 
         public int[] Matches(byte[] buffer)
         {
-            int count = byteregex_matches(buffer, buffer.Length);
-            int[] indexArray = new int[count];
+            int count;
+            int[] indexArray;
+
+            byteregex_matches(_handle, buffer, buffer.Length);
+            
+            count = byteregex_get_matches_count(_handle);
+            indexArray = new int[count];
+
             int err = byteregex_get_matches(indexArray, out count);
             if (err == -1)// need more buffer
             {

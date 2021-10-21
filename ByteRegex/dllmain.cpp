@@ -1,6 +1,6 @@
 ﻿// dllmain.cpp : DLL 애플리케이션의 진입점을 정의합니다.
 #include "pch.h"
-#include <iostream>
+//#include <iostream>
 #include <vector>
 #include "ByteRegex.h"
 
@@ -21,75 +21,53 @@ BOOL APIENTRY DllMain( HMODULE hModule,
     return TRUE;
 }
 
-ByteRegex* byteRegex = NULL;
-
-extern "C" MY_DECLSPEC void byteregex_init()
+extern "C" MY_DECLSPEC void* byteregex_init()
 {
-    if (byteRegex == NULL)
-    {
-        byteRegex = new ByteRegex();
-    }
-    else 
-    {
-        byteregex_free();
-        byteregex_init();
-    }
+    return new ByteRegex();
 }
 
-extern "C" MY_DECLSPEC void byteregex_init_with_pattern(char *pattern, int size)
+extern "C" MY_DECLSPEC void* byteregex_init_by_pattern(char* pattern, int size)
 {
-    if (byteRegex == NULL)
-    {
-        byteRegex = new ByteRegex(pattern, size);
-    }
-    else
-    {
-        byteregex_free();
-        byteregex_init();
-    }
+        return new ByteRegex(pattern, size);
 }
 
-extern "C" MY_DECLSPEC void byteregex_free()
+extern "C" MY_DECLSPEC void byteregex_free(void* handle)
 {
-    if (byteRegex != NULL)
-    {
-        delete byteRegex;
-        byteRegex = NULL;
-    }
+    ByteRegex* regex = (ByteRegex*)handle;
+    delete regex;
 }
 
-extern "C" MY_DECLSPEC bool byteregex_compile(char* pattern, unsigned int size)
+extern "C" MY_DECLSPEC void byteregex_compile(void* handle, char* pattern, int size)
 {
-    if (byteRegex == NULL) 
-    {
-        return false;
-    }
-
-    byteRegex->Compile(pattern, size);
-    //byteRegex->Debug();
-    return true;
+    ByteRegex* regex = (ByteRegex*)handle;
+    regex->Compile(pattern, size);
 }
 
-extern "C" MY_DECLSPEC int byteregex_matches(char* buffer, int length)
+extern "C" MY_DECLSPEC void byteregex_matches(void* handle, char* buffer, int size)
 {
-    return byteRegex->Matches(buffer, length);
+    ByteRegex* regex = (ByteRegex*)handle;
+    regex->Matches(buffer, size);
+    //std::cout << "size: " << size << std::endl;
 }
 
-extern "C" MY_DECLSPEC int byteregex_get_matches(int* indexArray, int& length)
+extern "C" MY_DECLSPEC int byteregex_get_matches(void* handle, int* indexArray, int& size)
 {
-    int *matches = byteRegex->GetMatches();
-    int matchesSize = byteRegex->GetMatchesSize();
-    if (length < matchesSize) {
-        length = matchesSize;
+    ByteRegex* regex = (ByteRegex*)handle;
+
+    int *matches = regex->GetMatches();
+    int matchesSize = regex->GetMatchesSize();
+    if (size < matchesSize) {
+        size = matchesSize;
         return -1;
     }
 
     memcpy(indexArray, matches, matchesSize);
-    length = matchesSize;
+    size = matchesSize;
     return 0;
 }
 
-extern "C" MY_DECLSPEC int byteregex_matches_get_matches_count()
+extern "C" MY_DECLSPEC int byteregex_get_matches_count(void* handle)
 {
-    return byteRegex->GetMatchesSize();
+    ByteRegex* regex = (ByteRegex*)handle;
+    return regex->GetMatchesSize();
 }

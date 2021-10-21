@@ -2,36 +2,30 @@
 #include "ByteRegex.h"
 #include <string>
 #include <iostream>
-
+#include <array>
 
 
 ByteRegex::ByteRegex()
 {
-    //matchesArrayCapa = 10 * 1024 * 1024;
-    matchesArrayCapa = 64;
-    matchesArraySize = 0;
-    matchesArray = new int[matchesArrayCapa];
+    
 }
+
 
 ByteRegex::ByteRegex(char* pattern, int size)
 {
-    //matchesArrayCapa = 10 * 1024 * 1024;
-    matchesArrayCapa = 64;
-    matchesArraySize = 0;
-    matchesArray = new int[matchesArrayCapa];
 	Compile(pattern, size);
 }
 
 ByteRegex::~ByteRegex()
 {
-    delete[] matchesArray;
+    
 }
 
 void ByteRegex::Compile(char* pattern, int size)
 {
 	_commands.clear();
     
-    for (size_t i = 0; i < size; i++)
+    for (int i = 0; i < size; i++)
     {
         if (pattern[i] == '[')//OR
         {
@@ -100,7 +94,8 @@ void ByteRegex::Compile(char* pattern, int size)
 int ByteRegex::Matches(char* buffer, int bufferSize)
 {
     int commandSize = (int)_commands.size();
-    matchesArraySize = 0;
+    _matchesArray.clear();
+    
     
 
     if (!_isCompiled)
@@ -108,7 +103,7 @@ int ByteRegex::Matches(char* buffer, int bufferSize)
         return -1;
     }
 
-    if (_commands.size() > bufferSize)
+    if ( (int)_commands.size() > bufferSize)
     {
         return 0;
     }
@@ -142,37 +137,28 @@ int ByteRegex::Matches(char* buffer, int bufferSize)
 
         if (hitSum == commandSize)
         {
-            matchesArray[matchesArraySize++] = dataIdx;
-            //배열 모자르면 2배 늘리기
-            if (matchesArrayCapa <= matchesArraySize)
-            {
-                matchesArrayCapa *= 2;
-                int* tmpArray = new int[matchesArrayCapa];
-                memcpy(tmpArray, matchesArray, matchesArraySize);
-                delete[] matchesArray;
-                matchesArray = tmpArray;
-            }
+            _matchesArray.push_back(dataIdx);
         }
     }
 
-    return matchesArraySize;
+    return _matchesArray.size();
 }
 
 int* ByteRegex::GetMatches()
 {
-    return matchesArray;
+    return _matchesArray.data();
 }
 
 int ByteRegex::GetMatchesSize()
 {
-    return matchesArraySize;
+    return _matchesArray.size();
 }
 
 void ByteRegex::Debug()
 {
-    std::vector<Command>::iterator iter;
+    /*std::vector<Command>::iterator iter;
     for (iter = _commands.begin(); iter != _commands.end(); iter++)
     {
         std::cout << "Code: " << (int)iter->code << ", value: " << (int)iter->value << std::endl;
-    }
+    }*/
 }
