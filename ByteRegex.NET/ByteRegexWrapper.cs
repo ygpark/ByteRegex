@@ -23,10 +23,10 @@ namespace ByteRegex.NET
         private static extern void byteregex_compile(IntPtr handle, byte[] pattern, int size);
 
         [DllImport("ByteRegex.dll", CallingConvention = CallingConvention.Cdecl)]
-        private static extern int byteregex_matches(IntPtr handle, byte[] buffer, int size);
+        private static extern void byteregex_matches(IntPtr handle, byte[] buffer, int size);
         
         [DllImport("ByteRegex.dll", CallingConvention = CallingConvention.Cdecl)]
-        private static extern int byteregex_get_matches(int[] indexArray, out int size);
+        private static extern int byteregex_get_matches(IntPtr handle, int[] indexArray, out int size); 
 
         [DllImport("ByteRegex.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern int byteregex_get_matches_count(IntPtr handle);
@@ -63,21 +63,23 @@ namespace ByteRegex.NET
         public int[] Matches(byte[] buffer)
         {
             int count;
-            int[] indexArray;
+            int[] indexArray = new int[0];
 
             byteregex_matches(_handle, buffer, buffer.Length);
             
             count = byteregex_get_matches_count(_handle);
-            indexArray = new int[count];
-
-            int err = byteregex_get_matches(indexArray, out count);
-            if (err == -1)// need more buffer
+            if(count != 0)
             {
                 indexArray = new int[count];
-                err = byteregex_get_matches(indexArray, out _);
-                if (err != 0)
+                int err = byteregex_get_matches(_handle, indexArray, out count);
+                if (err == -1)// need more buffer
                 {
-                    throw new Exception("알 수 없는 오류 발생");
+                    indexArray = new int[count];
+                    err = byteregex_get_matches(_handle, indexArray, out _);
+                    if (err != 0)
+                    {
+                        throw new Exception("알 수 없는 오류 발생");
+                    }
                 }
             }
 

@@ -60,7 +60,7 @@ void ByteRegex::Compile(byte* pattern, int size)
 
             //single_any가 있는지 검사
             bool hasAny = false;
-            for (int nodeIdx = 0; nodeIdx < single.Nodes.size(); nodeIdx++)
+            for (int nodeIdx = 0; nodeIdx < (int)single.Nodes.size(); nodeIdx++)
             {
                 Command node = single.Nodes[nodeIdx];
                 if (node.code == CommandCode::SINGLE_RANGE
@@ -120,6 +120,8 @@ void ByteRegex::Compile(byte* pattern, int size)
 
 int ByteRegex::Matches(byte* buffer, int size)
 {
+    //std::cout << "[debug] int ByteRegex::Matches(byte* buffer, int size) - begin" << std::endl;
+    
     int commandSize = (int)_commands.size();
     bool skipStop;
     _matches.clear();
@@ -171,7 +173,7 @@ int ByteRegex::Matches(byte* buffer, int size)
                 && _commands[cmdIdx].value <= buffer[dataIdx + cmdIdx] && buffer[dataIdx + cmdIdx] <= _commands[cmdIdx].end)
             {
                 //SINGLE([])의 노드 탐색
-                int nodeSize = _commands[cmdIdx].Nodes.size();
+                int nodeSize = (int)_commands[cmdIdx].Nodes.size();
                 for (int nodeIdx = 0; nodeIdx < nodeSize; nodeIdx++)
                 {
                     Command node = _commands[cmdIdx].Nodes[nodeIdx];
@@ -211,17 +213,19 @@ int ByteRegex::Matches(byte* buffer, int size)
         }
     }
 
-    return _matches.size();
+    //std::cout << "[debug] int ByteRegex::Matches(byte* buffer, int size) - end" << std::endl;
+    return (int)_matches.size();
 }
 
 int* ByteRegex::GetMatches()
 {
+    //std::cout << "_matches.size(): " << _matches.size() << std::endl;
     return _matches.data();
 }
 
 int ByteRegex::GetMatchesSize()
 {
-    return _matches.size();
+    return (int)_matches.size();
 }
 
 void ByteRegex::Debug()

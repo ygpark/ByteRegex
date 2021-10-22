@@ -53,24 +53,33 @@ extern "C" MY_DECLSPEC void byteregex_compile(void *handle, byte *pattern, int s
 
 extern "C" MY_DECLSPEC void byteregex_matches(void *handle, byte *buffer, int size)
 {
+    //std::cout << "[debug] void byteregex_matches(void *handle, byte *buffer, int size) - begin " << std::endl;
     ByteRegex* regex = (ByteRegex*)handle;
     regex->Matches(buffer, size);
-    //std::cout << "size: " << size << std::endl;
+    //std::cout << "[debug] void byteregex_matches(void *handle, byte *buffer, int size) - end " << std::endl;
+    return;
 }
 
 extern "C" MY_DECLSPEC int byteregex_get_matches(void *handle, int *indexArray, int &size)
 {
+    //std::cout << "[debug] int byteregex_get_matches(void *handle, int *indexArray, int &size) - begin" << std::endl;
     ByteRegex* regex = (ByteRegex*)handle;
-
-    int *matches = regex->GetMatches();
-    int matchesSize = regex->GetMatchesSize();
-    if (size < matchesSize) {
-        size = matchesSize;
+    int rstSize = regex->GetMatchesSize();
+    int* rst = NULL;
+    if (rstSize == 0)
+    {
+        size = 0;
+        return 0;
+    }
+    else if (size < rstSize)
+    {
+        size = rstSize;
         return -1;
     }
 
-    memcpy(indexArray, matches, matchesSize);
-    size = matchesSize;
+    rst = regex->GetMatches();
+    memcpy(indexArray, rst, rstSize);
+    //std::cout << "[debug] int byteregex_get_matches(void *handle, int *indexArray, int &size) - end " << std::endl;
     return 0;
 }
 
