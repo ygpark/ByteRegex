@@ -1,0 +1,5 @@
+= ByteRegex
+
+바이트 배열용 Regex 엔진입니다. 지금은 테스트 단계입니다.
+
+This is Regex Engine for byte array. This is the test stage.
