@@ -13,6 +13,6 @@ extern "C" MY_DECLSPEC void* byteregex_init();
 extern "C" MY_DECLSPEC void* byteregex_init_by_pattern(byte *pattern, int size);
 extern "C" MY_DECLSPEC void byteregex_free(void *handle);
 extern "C" MY_DECLSPEC void byteregex_compile(void *handle, byte *pattern, int size);
-extern "C" MY_DECLSPEC void byteregex_matches(void *handle, byte *buffer, int size);
-extern "C" MY_DECLSPEC int byteregex_get_matches(void *handle, int *indexArray, int &size);
+extern "C" MY_DECLSPEC int byteregex_matches(void *handle, byte *input, int size);
+extern "C" MY_DECLSPEC int byteregex_get_matches(void *handle, int *output, int &size);
 extern "C" MY_DECLSPEC int byteregex_get_matches_count(void *handle);

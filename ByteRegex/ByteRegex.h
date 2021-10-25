@@ -1,40 +1,43 @@
 #pragma once
 #include <vector>
 
-enum class CommandCode {
-    NONE = 1,
-    EQUAL = 2,
-    SINGLE = 3,
-    SINGLE_ANY = 4,
-    SINGLE_RANGE = 5,
-};
 
-struct Command {
-    CommandCode code;
-    byte value;
-    byte end;
-    std::vector<Command> Nodes;
-};
-
-class ByteRegex
+namespace ByteRegex
 {
-private:
-    bool _isCompiled = false;
-    std::vector<Command> _commands;
-    std::vector<int> _matches;
+    enum class CommandCode {
+        NONE = 1,
+        EQUAL = 2,
+        SINGLE = 3,
+        SINGLE_ANY = 4,
+        SINGLE_RANGE = 5,
+    };
 
-public:
-    ByteRegex();
-    ByteRegex(byte* pattern, int size);
-    ~ByteRegex();
+    struct Command {
+        CommandCode code;
+        unsigned char value;
+        unsigned char end;
+        std::vector<Command> Nodes;
+    };
 
-    void Compile(byte* pattern, int size);
-    int Matches(byte* buffer, int size);
-    int* GetMatches();
-    int GetMatchesSize();
+    class ByteRegex
+    {
+    private:
+        bool _isCompiled = false;
+        std::vector<Command> _commands;
+        std::vector<int> _matches;
 
-    void Debug();
+    public:
+        ByteRegex();
+        ByteRegex(unsigned char* pattern, int size);
+        ~ByteRegex();
 
-private:
-};
+        void Compile(unsigned char* pattern, int size);
+        int Matches(unsigned char* buffer, int size);
+        int* GetMatches();
+        int GetMatchesSize();
 
+        void Debug();
+
+    private:
+    };
+}

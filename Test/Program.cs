@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-//using ByteRegex.NET;
+
 
 namespace Test
 {
@@ -36,14 +36,25 @@ namespace Test
             }
             Console.WriteLine("준비: 100MB 메모리에 {0}개 패턴 쓰기 완료.", writeCount);
 
-            for (int i = 0; i < 4; i++)
+            
+            for (int i = 0; i < 10; i++)
             {
-                ByteRegex.NET.ByteRegexWrapper byteRegex1 = new ByteRegex.NET.ByteRegexWrapper(pattern);
+                ByteRegexCLR.ByteRegex byteRegexCLR = new ByteRegexCLR.ByteRegex(pattern);
+                watch.Reset();
+                watch.Start();
+                int matchCount = byteRegexCLR.Matches(data100MB, data100MB.Length);
+                watch.Stop();
+                Console.WriteLine($"C++CLR(소요시간: {watch.Elapsed}) (매치: {matchCount})");
+            }
+
+            for (int i = 0; i < 10; i++)
+            {
+                ByteRegexPInvoke.ByteRegex byteRegex1 = new ByteRegexPInvoke.ByteRegex(pattern);
                 watch.Reset();
                 watch.Start();
                 int[] matchIndex = byteRegex1.Matches(data100MB);
                 watch.Stop();
-                Console.WriteLine($"C++(소요시간: {watch.Elapsed}) (매치: {matchIndex.Length})");
+                Console.WriteLine($"PInvoke(소요시간: {watch.Elapsed}) (매치: {matchIndex.Length})");
             }
             
 

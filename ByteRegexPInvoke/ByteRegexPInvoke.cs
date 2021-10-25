@@ -5,9 +5,9 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ByteRegex.NET
+namespace ByteRegexPInvoke
 {
-    public class ByteRegexWrapper
+    public class ByteRegex
     {
         #region PInvoke
         [DllImport("ByteRegex.dll", CallingConvention = CallingConvention.Cdecl)]
@@ -23,10 +23,10 @@ namespace ByteRegex.NET
         private static extern void byteregex_compile(IntPtr handle, byte[] pattern, int size);
 
         [DllImport("ByteRegex.dll", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void byteregex_matches(IntPtr handle, byte[] buffer, int size);
+        private static extern int byteregex_matches(IntPtr handle, byte[] input, int size);
         
         [DllImport("ByteRegex.dll", CallingConvention = CallingConvention.Cdecl)]
-        private static extern int byteregex_get_matches(IntPtr handle, int[] indexArray, out int size); 
+        private static extern int byteregex_get_matches(IntPtr handle, int[] output, out int size);
 
         [DllImport("ByteRegex.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern int byteregex_get_matches_count(IntPtr handle);
@@ -37,18 +37,18 @@ namespace ByteRegex.NET
         IntPtr _handle;
         #endregion
 
-        public ByteRegexWrapper()
+        public ByteRegex()
         {
             _handle = byteregex_init();
         }
 
-        public ByteRegexWrapper(string pattern)
+        public ByteRegex(string pattern)
         {
             byte[] buf = Encoding.GetEncoding("Latin1").GetBytes(pattern);
             _handle = byteregex_init_by_pattern(buf, buf.Length);
         }
 
-        ~ByteRegexWrapper()
+        ~ByteRegex()
         {
             byteregex_free(_handle);
         }
@@ -63,27 +63,22 @@ namespace ByteRegex.NET
         public int[] Matches(byte[] buffer)
         {
             int count;
-            int[] indexArray = new int[0];
 
-            byteregex_matches(_handle, buffer, buffer.Length);
-            
-            count = byteregex_get_matches_count(_handle);
-            if(count != 0)
+            count = byteregex_matches(_handle, buffer, buffer.Length);
+            int[] output = new int[count];
+            output = new int[count];
+            int err = byteregex_get_matches(_handle, output, out count);
+            if (err == -1)// need more buffer
             {
-                indexArray = new int[count];
-                int err = byteregex_get_matches(_handle, indexArray, out count);
-                if (err == -1)// need more buffer
+                output = new int[count];
+                err = byteregex_get_matches(_handle, output, out _);
+                if (err != 0)
                 {
-                    indexArray = new int[count];
-                    err = byteregex_get_matches(_handle, indexArray, out _);
-                    if (err != 0)
-                    {
-                        throw new Exception("알 수 없는 오류 발생");
-                    }
+                    throw new Exception("알 수 없는 오류 발생");
                 }
             }
 
-            return indexArray;
+            return output;
         }
     }
 }
